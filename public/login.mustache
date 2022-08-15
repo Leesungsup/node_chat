@@ -33,10 +33,18 @@
                     alert("에러 발생:" + error);
                 });
         }
+        function login(){
+            if(!document.getElementById("ddlMemberList").value){
+                alert("아이디를 선택해 주세요");
+                return false
+            }
+            document.frm.submit();
+        }
     </script>
 </head>
 <body style="margin:0px">
 <div style="width:100%; display: inline-block; height: 630px; padding:0px;margin:0px">
+    <form name="frm" method="post" action="login_ok.php">
     <div style="text-align: center; width: 100%; margin-top: 50px" id="divMemberList">
         <select name="ddlMemberList" id="ddlMemberList">
             <option value="">아이디선택</option>
@@ -47,8 +55,9 @@
             {{/MEMBER}}
         </select>
     </div>
+    </form>
     <div style="text-align: center; width: 100%; margin-top: 20px">
-        <button>로그인하기기</button>
+        <button onclick="login();">로그인하기기</button>
    </div>
 </div>
 </body>

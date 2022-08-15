@@ -1,4 +1,5 @@
 <?php
+    include "conn.php";
     $SQL = " SELECT memberCode, userId, userIcon, alias FROM member $Where order by alias ";
 	$result = mysqli_query($db_link, $SQL);
 	$memberResult = dbresultTojson($result);
