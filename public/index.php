@@ -66,9 +66,21 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/0.1/mustache.min.js"></script>
 	<script src="/jquery.bpopup.min.js"></script>
 	<script>
+	    let websocket=null;
 	    $(document).ready(function(){
+	        connect();
 	        loadMemberList();
 	    });
+	    function connect(){
+	        websocket=new WebSocket('ws://')
+	        websocket.onopen=function(e){
+	            let date={"code":"member_login","memberCode":"<?php echo $_SESSION["kakao_member_code"]}?>","memberAlias":"<?php echo $_SESSION["kakao_member_alias"]?>"};
+	            sendMessage(data);
+	        }
+	    }
+	    fuction sendMessage(msg){
+	        websocket.send(JSON.stringify(msg));
+	    }
 	    function loadMemerList(){
                     $.ajax({
                         type: 'POST',
