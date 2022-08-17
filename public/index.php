@@ -3,7 +3,7 @@
     if(isset($_SESSION["kakao_member_code"])==false || !$_SESSION['kakao_member_code']){
     ?>
         <script>
-            location.replace("login.mustache");
+            location.replace("login.php");
         </script>
     <?php
       exit;
@@ -65,6 +65,7 @@
 	<!-- Mustache CDN -->
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/0.1/mustache.min.js"></script>
 	<script src="/jquery.bpopup.min.js"></script>
+
 	<script>
 	    let websocket=null;
 	    $(document).ready(function(){
@@ -72,16 +73,20 @@
 	        loadMemberList();
 	    });
 	    function connect(){
-	        websocket=new WebSocket('ws://')
+	        websocket=new WebSocket('ws://');
 	        websocket.onopen=function(e){
-	            let date={"code":"member_login","memberCode":"<?php echo $_SESSION["kakao_member_code"]}?>","memberAlias":"<?php echo $_SESSION["kakao_member_alias"]?>"};
+	            let data={
+					"code":"member_login",
+					"memberCode":"<?php echo $_SESSION["kakao_member_code"]?>",
+					"memberAlias":"<?php echo $_SESSION["kakao_member_alias"]?>"
+				};
 	            sendMessage(data);
 	        }
 	    }
-	    fuction sendMessage(msg){
+	    function sendMessage(msg){
 	        websocket.send(JSON.stringify(msg));
 	    }
-	    function loadMemerList(){
+	    function loadMemberList(){
                     $.ajax({
                         type: 'POST',
                         url: "getMemberList.php",
@@ -105,13 +110,13 @@
                 function login(){
                     if(!document.getElementById("ddlMemberList").value){
                         alert("아이디를 선택해 주세요");
-                        return false
+                        return false;
                     }
                     document.frm.submit();
                 }
 		function openChat(){
-		    $(#MAIN).css("left",($(document).width()+100));
-		    $(#MAIN).load("chat.php",function(){
+		    $("#MAIN").css("left",($(document).width()+100));
+		    $("#MAIN").load("chat.php",function(){
 		        $("MAIN").animate({left:0,top:0});
 		    });
 		}
@@ -119,26 +124,28 @@
 </head>
 <body style="margin:0px">
 	<div style="width:100%; display:inline-block; height:630px; padding:0px; margin:0px; position:relative; left:0px; top:0px" id="MAIN">
-	<div id="divMemberList" style="display:none">
+	<div style="width:20%; display:inline-block; height:100%; background-color:#ececed; padding:0px; padding-top:10px; margin:0px; text-align:center; float:left;">
+	<i class="fas fa-user" style="font-size:28px; color:#909297"></i>
+	</div>
+	<div style="width:76%; display:inline-block; height:100px; background-color:#ffffff; padding:0px; padding-top:10px; margin:0px; float:left">
+	<div style="width:100%; height:30px; padding:0px; margin:0px; color:black; padding-left:14px">
+	친구
+	</div>
+	<div style="width:100%; height:calc(100%-30px); padding:0px; margin:0px; margin-bottom:-30px; color:black; overflow-y:auto" id="divMemberList">
     		{{#MEMBER}}
-    			{{#alias}}
     				<div class="divFriendTr">
     					<div style="float:left">
-    						<img src="{{userIcon}}" style="width:33px; height:33px">
+    						<img src="/kakaoimg/kakaoicon.png" style="width:33px; height:33px">
     					</div>
-    					<div style="float:left; margin-left:7px">
+    					<div style="float:left; margin-left:7px" onclick="openChat();">
     						{{alias}}
     					</div>
-    					<div style="float:right; margin-right:15px">
-    						<input type=checkbox name="chAddMember" class="clAddMember" value="{{memberCode}}" alias="{{alias}}">
-    					</div>
     				</div>
-    			{{/alias}}
+
     		{{/MEMBER}}
-    		<div style="text-align:center; margin-top:20px">
-    			<button style="background-color:yellow; border:0px; padding:10px; padding-top:5px; padding-bottom:5px; border:1px solid #eeeeee; border-radius:3px; font-weight:bold" onclick="addMemberComplete();">추가하기</button>
-    		</div>
-    	</div>
+	</div>
+	</div>
+    <div style="width:0%; height:0px; padding:0px; margin:0px; position:relative; left:0px; top:0px" id="BACKGROUND">
 	</div>
 </body>
 </html>

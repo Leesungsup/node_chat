@@ -1,6 +1,6 @@
 <?php
     include "conn.php";
-    $ddlMemberLost=$_POST["ddlMemberList"];
+    $ddlMemberList=$_POST["ddlMemberList"];
     if($ddlMemberList){
     $SQL="select alias from member where memberCode='".$ddlMemberList."'";
     $result=mysqli_query($db_link,$SQL);

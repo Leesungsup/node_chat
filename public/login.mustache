@@ -9,10 +9,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/0.1/mustache.min.js"></script>
 
     <script>
-        $(document).reday(function(){
+        $(document).ready(function(){
             loadMemberList();
-        })
-        function loadMemerList(){
+        });
+        function loadMemberList(){
             $.ajax({
                 type: 'POST',
                 url: "getMemberList.php",
@@ -20,14 +20,13 @@
                 dataType : 'text',
                 cache: false,
                 async: false
-            })
-                .done(function( result ) {
-                    //성공했을때
-                    let memberList = {"MEMBER": JSON.parse(result)};
+            }).done(function( result ) {
+                //성공했을때
+                let memberList = {"MEMBER": JSON.parse(result)};
 
-                    var output = Mustache.render($("#divMemberList").html(), memberList);
-                    $("#divMemberList").html(output);
-                })
+                var output = Mustache.render($("#divMemberList").html(), memberList);
+                $("#divMemberList").html(output);
+            })
                 .fail(function( result, status, error ) {
                     //실패했을때
                     alert("에러 발생:" + error);
@@ -45,20 +44,20 @@
 <body style="margin:0px">
 <div style="width:100%; display: inline-block; height: 630px; padding:0px;margin:0px">
     <form name="frm" method="post" action="login_ok.php">
-    <div style="text-align: center; width: 100%; margin-top: 50px" id="divMemberList">
-        <select name="ddlMemberList" id="ddlMemberList">
-            <option value="">아이디선택</option>
-            {{#MEMBER}}
-            {{#alias}}
-            <option value="{{memberCode}}">{{alias}}</option>
-            {{/alias}}
-            {{/MEMBER}}
-        </select>
-    </div>
+        <div style="text-align: center; width: 100%; margin-top: 50px" id="divMemberList">
+            <select name="ddlMemberList" id="ddlMemberList">
+                <option value="">아이디선택</option>
+                {{#MEMBER}}
+                {{#alias}}
+                <option value="{{memberCode}}">{{alias}}</option>
+                {{/alias}}
+                {{/MEMBER}}
+            </select>
+        </div>
     </form>
     <div style="text-align: center; width: 100%; margin-top: 20px">
-        <button onclick="login();">로그인하기기</button>
-   </div>
+        <button onclick="login()">로그인하기</button>
+    </div>
 </div>
 </body>
 </html>
