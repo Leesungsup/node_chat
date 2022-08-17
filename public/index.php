@@ -87,7 +87,10 @@
 	        websocket.send(JSON.stringify(msg));
 	    }
 	    function loadMemberList(){
-                    $.ajax({
+			$("#MAIN").css("left",(0-$(document).width()));
+		    $("#MAIN").load("member.php",function(){
+		        $("#MAIN").animate({left:0,top:0});
+				$.ajax({
                         type: 'POST',
                         url: "getMemberList.php",
                         data: {},
@@ -106,44 +109,36 @@
                             //실패했을때
                             alert("에러 발생:" + error);
                         });
-                }
-                function login(){
-                    if(!document.getElementById("ddlMemberList").value){
-                        alert("아이디를 선택해 주세요");
-                        return false;
-                    }
-                    document.frm.submit();
-                }
-		function openChat(){
+			});
+		}
+		function openChat(new_member_code,new_member_alias){
 		    $("#MAIN").css("left",($(document).width()+100));
 		    $("#MAIN").load("chat.php",function(){
-		        $("MAIN").animate({left:0,top:0});
+		        $("#MAIN").animate({left:0,top:0});
 		    });
+			let members=[];
+			let me = {
+				"memberCode":"<?php echo $_SESSION["kakao_member_code"]?>",
+				"memberAlias":"<?php echo $_SESSION["kakao_member_alia"]?>"
+			}
+			members.push(me);
+			let you={
+				"memberCode":new_member_code,
+				"memberAlias":new_member_alias
+			}
+			if("<?php echo $_SESSION["kakao_member_code"]?>"!=new_member_code){
+				members.push(you);
+			}
+			let data={
+				"code":"create_room",
+				"members":members
+			};
+			sendMessage(data);
 		}
 	</script>
 </head>
 <body style="margin:0px">
 	<div style="width:100%; display:inline-block; height:630px; padding:0px; margin:0px; position:relative; left:0px; top:0px" id="MAIN">
-	<div style="width:20%; display:inline-block; height:100%; background-color:#ececed; padding:0px; padding-top:10px; margin:0px; text-align:center; float:left;">
-	<i class="fas fa-user" style="font-size:28px; color:#909297"></i>
-	</div>
-	<div style="width:76%; display:inline-block; height:100px; background-color:#ffffff; padding:0px; padding-top:10px; margin:0px; float:left">
-	<div style="width:100%; height:30px; padding:0px; margin:0px; color:black; padding-left:14px">
-	친구
-	</div>
-	<div style="width:100%; height:calc(100%-30px); padding:0px; margin:0px; margin-bottom:-30px; color:black; overflow-y:auto" id="divMemberList">
-    		{{#MEMBER}}
-    				<div class="divFriendTr">
-    					<div style="float:left">
-    						<img src="/kakaoimg/kakaoicon.png" style="width:33px; height:33px">
-    					</div>
-    					<div style="float:left; margin-left:7px" onclick="openChat();">
-    						{{alias}}
-    					</div>
-    				</div>
-
-    		{{/MEMBER}}
-	</div>
 	</div>
     <div style="width:0%; height:0px; padding:0px; margin:0px; position:relative; left:0px; top:0px" id="BACKGROUND">
 	</div>

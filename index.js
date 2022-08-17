@@ -1,6 +1,8 @@
 const WebSocket = require("ws");
+const mysql = require("mysql");
 const ws = new WebSocket.Server({port:8008});
 let ALL_USER=[];
+let ALL_ROOM=[];
 ws.on("connection",function connect(websocket,req){
    websocket.on("message",function incoming(message){
       console.log(JSON.parse(message));
@@ -8,6 +10,12 @@ ws.on("connection",function connect(websocket,req){
       switch (message.code){
          case "member_login":
             login(message.memberCode,message.memberAlias);
+            break;
+         case "create_room":
+            message.members.sort(function (a,b){
+               return a.memberCode-b.memberCode;
+            });
+            ROOM_ID=createRoom(message.members);
             break;
       }
    });
@@ -17,5 +25,51 @@ ws.on("connection",function connect(websocket,req){
       };
       ALL_USER.push(member_data);
       console.log("Login OK");
+   }
+   function createRoom(members){
+      let ROOM_ID="";
+      const conn=mysql.createConnection({
+         host:"localhost",
+         user:"",
+         password:"",
+         database:""
+      });
+      let all_member="";
+      members.forEach(function (element,index){
+         if(!all_member){
+            all_member=element.memberCode
+         }else{
+            all_member+=","+element.memberCode
+         }
+      });
+      let sql="select roomCode from room where members='"+all_member+"'";
+      conn.query(sql,function (err,rows,fields){
+         if(rows && rows.length>0){
+            ROOM_ID=rows[0].roomCode;
+         }else{
+            sql="INSERT INTO room(members) values('"+all_member+"')";
+            conn.query(sql,function(){});
+            sql="select max(roomCode) as roomCode from room";
+            conn.query(sql,function(err,rows,fields){
+               ROOM_ID=rows[0].roomCode;
+            });
+         }
+      });
+      createRoomStep2(ROOM_ID,members);
+      conn.end();
+      return ROOM_ID;
+   }
+   function createRoomStep2(t_ROOM_ID,t_members){
+      let room_data={
+         "id":t_ROOM_ID,
+         "members":t_members
+      }
+      let findSameRoomid = ALL_ROOM.filter(function (element){
+         return element.id == t_ROOM_ID;
+      });
+      if(findSameRoomid.length==0){
+         ALL_ROOM.push(room_data);
+      }
+      console.log("createRoom OK");
    }
 });
