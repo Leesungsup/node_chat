@@ -68,6 +68,7 @@
 
 	<script>
 	    let websocket=null;
+		let NOW_ROOM_ID="";
 	    $(document).ready(function(){
 	        connect();
 	        loadMemberList();
@@ -82,7 +83,47 @@
 				};
 	            sendMessage(data);
 	        }
+			websocket.onmessage=function(e){
+				let message = JSON.parse(e.data);
+				switch(message.code){
+					case "send_roominfo":
+						NOW_ROOM_ID=message.room_id;
+						getAllMessageFromRoom(NOW_ROOM_ID);
+						break;
+				}
+			}
 	    }
+		function getAllMessageFromRoom(room_id){
+			$.ajax({
+                        type: 'POST',
+                        url: "getAllMessageFromRoom.php",
+                        data: {"room_id":room_id},
+                        dataType : 'text',
+                        cache: false,
+                        async: false
+                    })
+                        .done(function( result ) {
+							let chatList={"CHAT":JSON.parse(result)};
+							chatList.CHAT.forEach(function(element,index){
+								let isMy=false;
+								let isYou=true;
+								if(element.memberCode=="<?php echo $_SESSION["kakao_member_code"]?>"){
+									isMy=true;
+									isYou=false;
+								}
+								element.chat_contents=chatList.CHAT[index].chat_contents.replace(/(?:\r,\n|\r|\n)/g,'<br/>');
+								chatList.CHAT[index].isMy=isMy;
+								chatList.CHAT[index].isYou=isYou;
+							});
+							var output=Mustache.render($("#MAIN").html(), chatList);
+                            $("#MAIN").html(output);
+
+                        })
+                        .fail(function( result, status, error ) {
+                            //실패했을때
+                            alert("에러 발생:" + error);
+                        });
+		}
 	    function sendMessage(msg){
 	        websocket.send(JSON.stringify(msg));
 	    }
@@ -119,7 +160,7 @@
 			let members=[];
 			let me = {
 				"memberCode":"<?php echo $_SESSION["kakao_member_code"]?>",
-				"memberAlias":"<?php echo $_SESSION["kakao_member_alia"]?>"
+				"memberAlias":"<?php echo $_SESSION["kakao_member_alias"]?>"
 			}
 			members.push(me);
 			let you={
@@ -134,6 +175,33 @@
 				"members":members
 			};
 			sendMessage(data);
+		}
+		function sendChat(){
+			let chat_message=$("#chat_message").val();
+			$.ajax({
+                        type: 'POST',
+                        url: "chat_message_insert.php",
+                        data: {"roomId":NOW_ROOM_ID,"chat_message":chat_message},
+                        dataType : 'text',
+                        cache: false,
+                        async: false
+                    })
+                        .done(function( result ) {
+                            //성공했을때
+							console.log(result);
+                            if(result=="OK"){
+								let data={
+									"code":"send_chat",
+									"room_id":NOW_ROOM_ID,
+									"send_memberCode":"<?php echo $_SESSION["kakao_member_code"]?>"
+								};
+								sendMessage(data);
+							}
+                        })
+                        .fail(function( result, status, error ) {
+                            //실패했을때
+                            alert("에러 발생:" + error);
+                        });
 		}
 	</script>
 </head>

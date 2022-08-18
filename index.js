@@ -54,10 +54,11 @@ ws.on("connection",function connect(websocket,req){
                ROOM_ID=rows[0].roomCode;
             });
          }
+         conn.end();
+         createRoomStep2(ROOM_ID,members);
+         return ROOM_ID;
       });
-      createRoomStep2(ROOM_ID,members);
-      conn.end();
-      return ROOM_ID;
+
    }
    function createRoomStep2(t_ROOM_ID,t_members){
       let room_data={
@@ -71,5 +72,14 @@ ws.on("connection",function connect(websocket,req){
          ALL_ROOM.push(room_data);
       }
       console.log("createRoom OK");
+      sendRoomInfo(t_ROOM_ID);
+   }
+   function sendRoomInfo(t_ROOM_ID){
+      let data={"code":"send_roominfo","room_id":t_ROOM_ID};
+      sendMessage(data);
+      console.log("sendRoomInfo OK");
+   }
+   function sendMessage(msg){
+      websocket.send(JSON.stringify(msg));
    }
 });
