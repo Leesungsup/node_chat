@@ -17,11 +17,15 @@ ws.on("connection",function connect(websocket,req){
             });
             ROOM_ID=createRoom(message.members);
             break;
+         case "send_chat":
+            sendChat(message.room_id.message.send_memberCode);
       }
    });
    function login(memberCode,memberAlias){
       let member_data={
-         "memberCode":memberCode,"memberAlias":memberAlias,"ws":websocket
+         "memberCode":memberCode,
+         "memberAlias":memberAlias,
+         "ws":websocket
       };
       ALL_USER.push(member_data);
       console.log("Login OK");
@@ -81,5 +85,20 @@ ws.on("connection",function connect(websocket,req){
    }
    function sendMessage(msg){
       websocket.send(JSON.stringify(msg));
+   }
+   function sendChat(room_id,memberCode){
+      ALL_ROOM.forEach(function (element,index){
+         if(element.id==room_id){
+            element.members.forEach(function(member,memberindex){
+               ALL_USER.forEach(function (user,userindex){
+                  if(member.memberCode==user.memberCode){
+                     let data={"code":"arrive_new_message","room_id":"room_id"};
+                     user.ws.send(JSON.stringify(data));
+                     console.log("arrive_new_message_OK");
+                  }
+               })
+            })
+         }
+      })
    }
 });

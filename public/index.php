@@ -88,12 +88,16 @@
 				switch(message.code){
 					case "send_roominfo":
 						NOW_ROOM_ID=message.room_id;
-						getAllMessageFromRoom(NOW_ROOM_ID);
+						getAllMessageFromRoom(NOW_ROOM_ID,"first");
+						break;
+					case "arrive_new_message":
+						NOW_ROOM_ID=message.room_id;
+						getAllMessageFromRoom(NOW_ROOM_ID,"notfirst");
 						break;
 				}
 			}
 	    }
-		function getAllMessageFromRoom(room_id){
+		function getAllMessageFromRoom(room_id,mode){
 			$.ajax({
                         type: 'POST',
                         url: "getAllMessageFromRoom.php",
@@ -115,8 +119,21 @@
 								chatList.CHAT[index].isMy=isMy;
 								chatList.CHAT[index].isYou=isYou;
 							});
-							var output=Mustache.render($("#MAIN").html(), chatList);
-                            $("#MAIN").html(output);
+							if(mode=="first"){
+								var output=Mustache.render($("#MAIN").html(), chatList);
+								$("#MAIN").html(output);
+								$("#MAIN_CONTENTS").scrollTop($("#MAIN_CONTENTS")[0].scrollHeight);
+							}
+							else{
+								$("#BACKGROUND").load("chat.php",function(){
+									let chat_name = $("#spanChatName").html();
+									var output=Mustache.render($("#BACKGROUND").html(),chatList);
+									$("#MAIN").html(output);
+									$("#spanChatName").html(chat_name);
+									$("#BACKGROUND").html("");
+									$("#MAIN_CONTENTS").scrollTop($("#MAIN_CONTENTS")[0].scrollHeight);
+								})
+							}
 
                         })
                         .fail(function( result, status, error ) {
@@ -153,10 +170,6 @@
 			});
 		}
 		function openChat(new_member_code,new_member_alias){
-		    $("#MAIN").css("left",($(document).width()+100));
-		    $("#MAIN").load("chat.php",function(){
-		        $("#MAIN").animate({left:0,top:0});
-		    });
 			let members=[];
 			let me = {
 				"memberCode":"<?php echo $_SESSION["kakao_member_code"]?>",
@@ -170,11 +183,25 @@
 			if("<?php echo $_SESSION["kakao_member_code"]?>"!=new_member_code){
 				members.push(you);
 			}
-			let data={
-				"code":"create_room",
-				"members":members
-			};
-			sendMessage(data);
+			$("#MAIN").css("left",($(document).width()+100));
+		    $("#MAIN").load("chat.php",function(){
+		        $("#MAIN").animate({left:0,top:0});
+				let chat_name=getChatName(members);
+				$("#spanChatName").html(chat_name);
+				let data={"code":"create_room","members":members};
+				sendMessage(data);
+		    });
+		}
+		function getChatName(members){
+			let return_value="";
+			members.forEach(function(element,index){
+				if(!return_value){
+					return_value=element.memberAlias;
+				}else{
+					return_value+=","+element.memberAlias;
+				}
+			});
+			return return_value;
 		}
 		function sendChat(){
 			let chat_message=$("#chat_message").val();
