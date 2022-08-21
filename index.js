@@ -18,9 +18,72 @@ ws.on("connection",function connect(websocket,req){
             ROOM_ID=createRoom(message.members);
             break;
          case "send_chat":
-            sendChat(message.room_id.message.send_memberCode);
+            sendChat(message.room_id,message.send_memberCode);
+            break;
+         case "room_member_insert":  //방에 회원 추가
+            roomMemberInsert(message.room_id, message.members);
+            break;
       }
    });
+   function roomMemberInsert(room_id, members) {
+      let ROOM_ID = "";
+      //DATABASE에 room 정보를 insert
+      const conn = mysql.createConnection({
+         host: "localhost",
+         user: "root",
+         password: "",
+         database: "kakaotalk"
+      });
+
+      let sql = " select members, members_name from room where roomCode='" +room_id+ "' ";
+      conn.query(sql, function(err, rows, fields){
+         if(rows && rows.length > 0) { //동일한 회원들이 참여하는 방이 이미 존재하는 경우
+            let this_members = rows[0].members;
+            let this_members_name = rows[0].members_name;
+
+            let this_members_arr = this_members.split(",");
+            let this_members_name_arr = this_members_name.split(",");
+
+            for(let q=0; q < this_members_arr.length; q++) {
+               let memberCode = this_members_arr[q];
+               let memberAlias = this_members_name_arr[q];
+
+               let tmpMember = {"memberCode": memberCode,"memberAlias": memberAlias}
+               members.push(tmpMember);
+            }
+
+            members.sort(function(a,b){  //memberCode 기준으로 오름차순 정렬 (1,2,3,4...10)
+               return a.memberCode - b.memberCode;
+            });
+
+            let all_member = "";
+            let all_member_name = "";
+            members.forEach(function(element, index){
+               if(!all_member) {
+                  all_member = element.memberCode
+                  all_member_name = element.memberAlias
+               }
+               else {
+                  all_member += "," + element.memberCode
+                  all_member_name += "," + element.memberAlias
+                  //3,2,1,4
+               }
+            });
+
+            sql = " update room set members='"+all_member+"', members_name='"+all_member_name+"' where roomCode='"+room_id+"' ";
+            conn.query(sql, function(err){console.log(err);});
+
+            ALL_ROOM.forEach(function(element, index) {
+               if(element.id == room_id) {  //맞는 방 찾기
+                  element.members = members;
+               }
+            });
+
+            let data = {"code": "room_member_inserted", "room_id": room_id, "members": members};
+            sendMessage(data);
+         }
+      });
+   }
    function login(memberCode,memberAlias){
       let member_data={
          "memberCode":memberCode,
