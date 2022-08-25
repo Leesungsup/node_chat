@@ -9,18 +9,29 @@ app.listen(port,function(){
 });
 
 app.get("/pharmach_list",(req,res)=>{
-    let response=null;
-    try {
         let api = async () => {
-            response = await axios.get("");
+            let response=null;
+            try {
+                response = await axios.get("", {
+                    params: {
+                        "serviceKey": "",
+                        "Q0": req.query.Q0,
+                        "Q1": req.query.Q1,
+                        "QT": req.query.QT,
+                        "QN": req.query.QN,
+                        "ORD": req.query.ORD,
+                        "pageNo": req.query.pageNo,
+                        "numOfRows": req.query.numOfRows
+                    }
+                });
+            }
+            catch (e){
+                console.log(e);
+            }
+            return response;
         }
         api.then((response)=>{
             res.setHeader("Acess-Control-Allow-Origin","*");
             res.json(response.data,response.body);
         });
-    }
-    catch (e){
-        console.log(e);
-    }
-    return response;
 });
