@@ -32,3 +32,15 @@ app.listen(port, ()=>{
     console.log(`We are listening for requests at port ${3000}`);
 })
 //
+app.get('/', (req, res) => {
+
+    const { spawn } = require('child_process');
+    const pyProg = spawn('python', ['./../pypy.py']);
+
+    pyProg.stdout.on('data', function(data) {
+
+        console.log(data.toString());
+        res.write(data);
+        res.end('end');
+    });
+})
